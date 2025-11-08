@@ -1,31 +1,19 @@
-import React, { useRef } from "react";
-import GesturePdfPresenter from "./components/GesturePdfPresenter.jsx";
-import HandController from "./components/HandController.jsx";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./components/Login";
+import PrincipalProject from "./pages/PrincipalProject";
+import WelcomePage from "./pages/WelcomePage";
+import Register from "./components/Register"
 
 export default function App() {
-  const presenterRef = useRef(null);
-
-  return (
-    <div className="app">
-      <header>
-        <h1>Gestures PDF Presenter</h1>
-        <p className="status">
-          Controla un PDF con gestos de la mano (webcam).
-        </p>
-      </header>
-
-      <main className="grid">
-        <GesturePdfPresenter ref={presenterRef} />
-        <HandController
-          onSwipeLeft={() => presenterRef.current?.prevPage?.()}
-          onSwipeRight={() => presenterRef.current?.nextPage?.()}
-          onToggleFullscreen={() => presenterRef.current?.toggleFullscreen?.()}
-        />
-      </main>
-
-      <footer>
-        <small>PROYECTO INGENIERIA DE SOFTWARE</small>
-      </footer>
-    </div>
+   return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register  />} />
+        <Route path="/presenter" element={<PrincipalProject />} />
+      </Routes>
+    </Router>
   );
 }

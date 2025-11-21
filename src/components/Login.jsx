@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaGoogle } from "react-icons/fa";
 import "./../styles/Login.css";
 
 export default function Login() {
@@ -9,16 +10,20 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (email === "admin@gmail.com" && password === "1234") {
+    debugger
+    if (email === "1@1.1" && password === "1") {
       navigate("/presenter");
     } else {
       alert("Credenciales incorrectas");
     }
   };
 
+  const googleLogin = () => {
+    console.log("Login con Google...");
+  };
+
   return (
-    <div class="center">
+    <div className="center">
       <div className="login-container">
         <h2>Iniciar Sesión</h2>
         <form onSubmit={handleSubmit}>
@@ -36,6 +41,10 @@ export default function Login() {
           />
           <button type="submit">Entrar</button>
         </form>
+
+        <button className="google-btn" onClick={googleLogin}>
+          <FaGoogle className="google-icon" /> Entrar con Google
+        </button>
       </div>
     </div>
   );

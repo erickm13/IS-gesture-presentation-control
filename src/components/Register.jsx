@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { FaGoogle } from "react-icons/fa";
 import "./../styles/Register.css";
 import { auth, db } from "../firebase/config"; 
 import { doc, setDoc } from "firebase/firestore";
+
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -42,9 +43,33 @@ export default function Register() {
     }
   };
 
-  const googleRegister = () => {
-    console.log("Registro con Google...");
-  };
+  const googleRegister = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+
+    const user = result.user;
+
+    const fullName = user.displayName || "";
+    const [firstName, lastName] = fullName.split(" ");
+
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      email: user.email,
+      name: firstName || "",
+      lastname: lastName || "",
+      role: "user",
+    }, { merge: true });
+
+    alert("Usuario registrado con Google");
+    navigate("/presenter");
+
+  } catch (error) {
+    console.error("Error con Google:", error);
+    alert(error.message);
+  }
+};
+
 
   return (
     <div className="center">

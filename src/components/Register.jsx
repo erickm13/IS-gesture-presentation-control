@@ -62,7 +62,7 @@ export default function Register() {
     }, { merge: true });
 
     alert("Usuario registrado con Google");
-    navigate("/presenter");
+    navigate("/app/dashboard");
 
   } catch (error) {
     console.error("Error con Google:", error);

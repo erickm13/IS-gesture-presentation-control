@@ -4,15 +4,31 @@ import Login from "./components/Login";
 import PrincipalProject from "./pages/PrincipalProject";
 import WelcomePage from "./pages/WelcomePage";
 import Register from "./components/Register"
+import UserLayout from "./components/UserLayout"
+import ProtectedRoute from "./auth/ProtectedRoute";
+import Dashboard from "./pages/Dashboard"
+
 
 export default function App() {
-   return (
+  return (
     <Router>
       <Routes>
         <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register  />} />
-        <Route path="/presenter" element={<PrincipalProject />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route 
+          path="/app"
+          element={
+            <ProtectedRoute>
+              <UserLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="presenter" element={<PrincipalProject />} />
+        </Route>
+
       </Routes>
     </Router>
   );

@@ -15,7 +15,7 @@ export default function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/presenter");
+      navigate("/app/dashboard");
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       alert("Credenciales incorrectas o usuario no registrado.");
@@ -27,7 +27,7 @@ export default function Login() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
 
-      navigate("/presenter");
+      navigate("/app/dashboard");
     } catch (error) {
       console.error("Error con Google Login:", error);
       alert("No se pudo iniciar sesión con Google.");

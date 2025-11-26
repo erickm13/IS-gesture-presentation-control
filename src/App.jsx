@@ -25,6 +25,10 @@ export default function App() {
             </ProtectedRoute>
           }
         >
+
+        <Route path="/app/presenter/:id" element={<PrincipalProject />} />
+ 
+          
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="presenter" element={<PrincipalProject />} />
         </Route>

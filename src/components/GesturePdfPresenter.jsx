@@ -10,7 +10,8 @@ import React, {
 import * as pdfjsLib from "pdfjs-dist";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.js?url";
 
-const GesturePdfPresenter = forwardRef(function GesturePdfPresenter(_, ref) {
+const GesturePdfPresenter = forwardRef(function GesturePdfPresenter(props, ref) {
+  const { pdfBase64 } = props;
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const renderTaskRef = useRef(null);

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { IoCloudUploadOutline } from "react-icons/io5";
+import { FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { auth } from "../firebase/config";
 
+// PDF.js (correcto para Vite)
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import pdfjsWorker from "pdfjs-dist/legacy/build/pdf.worker.js";
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -14,10 +16,15 @@ export default function Dashboard() {
   const [pdfs, setPdfs] = useState([]);
   const [thumbnails, setThumbnails] = useState({});
   const [limitReached, setLimitReached] = useState(false);
+  const [pdfToDelete, setPdfToDelete] = useState(null);
 
   const navigate = useNavigate();
+  const premiumModalRef = useRef(null);
+  const deleteModalRef = useRef(null);
 
-  // ==== THUMBNAILS ====
+  /** =========================================
+   *     GENERAR MINIATURA
+   ========================================== */
   const generateThumbnail = async (base64, id) => {
     try {
       const cleanBase64 = base64.includes("base64,")
@@ -30,7 +37,7 @@ export default function Dashboard() {
       const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
       const page = await pdf.getPage(1);
 
-      const viewport = page.getViewport({ scale: 1.5 }); // más calidad
+      const viewport = page.getViewport({ scale: 1.5 });
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -41,14 +48,15 @@ export default function Dashboard() {
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       const imgURL = canvas.toDataURL("image/jpeg", 0.85);
-
       setThumbnails((prev) => ({ ...prev, [id]: imgURL }));
     } catch (err) {
       console.error("⚠ Miniatura error:", err);
     }
   };
 
-  // ==== LOAD PDFs ====
+  /** =========================================
+   *     CARGAR PDFs
+   ========================================== */
   useEffect(() => {
     const loadPDFs = async () => {
       const { data, error } = await supabase
@@ -69,12 +77,11 @@ export default function Dashboard() {
     loadPDFs();
   }, []);
 
-  // ==== SUBIR PDF ====
+  /** =========================================
+   *     SUBIR PDF
+   ========================================== */
   const handlePdfUpload = async (e) => {
-    if (limitReached) {
-      document.getElementById("premiumModal").showModal();
-      return;
-    }
+    if (limitReached) return premiumModalRef.current.showModal();
 
     const file = e.target.files[0];
     if (!file) return;
@@ -95,23 +102,63 @@ export default function Dashboard() {
     reader.readAsDataURL(file);
   };
 
+  /** =========================================
+   *     CONFIRMAR ELIMINACIÓN
+   ========================================== */
+  const confirmDelete = (pdf) => {
+    setPdfToDelete(pdf);
+    deleteModalRef.current.showModal();
+  };
+
+  /** =========================================
+   *     ELIMINAR PDF DEFINITIVAMENTE
+   ========================================== */
+  const deletePdf = async () => {
+    if (!pdfToDelete) return;
+
+    const { error } = await supabase
+      .from("presentations")
+      .delete()
+      .eq("id", pdfToDelete.id)
+      .eq("user_id", auth.currentUser.uid);
+
+    if (error) {
+      alert("Error eliminando: " + error.message);
+      return;
+    }
+
+    // Quitar del estado local
+    setPdfs((prev) => prev.filter((p) => p.id !== pdfToDelete.id));
+
+    setThumbnails((prev) => {
+      const updated = { ...prev };
+      delete updated[pdfToDelete.id];
+      return updated;
+    });
+
+    setPdfToDelete(null);
+    deleteModalRef.current.close();
+  };
+
+  /** =========================================
+   *     RENDER
+   ========================================== */
   return (
-    <div
-      className="min-h-screen bg-[#0B1120] text-white p-6
-                 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.20),transparent_70%)]"
-    >
+    <div className="min-h-screen bg-[#0B1120] text-white p-6
+                    bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.20),transparent_70%)]">
+      
       {/* HEADER */}
       <div className="flex justify-between items-center mb-10 animate-fadeUp">
         <h1 className="text-4xl font-bold">Mis Presentaciones</h1>
 
         {limitReached && (
-          <span className="text-sm text-red-400">
-            Alcanzaste tu límite gratuito de {MAX_FREE_FILES} archivos.
+          <span className="text-red-400 text-sm">
+            Límite gratuito de {MAX_FREE_FILES} presentaciones alcanzado
           </span>
         )}
       </div>
 
-      {/* BOTÓN SUBIR */}
+      {/* BOTON SUBIR */}
       <div className="flex gap-4 items-center mb-8 animate-fadeUp">
         <input
           type="file"
@@ -123,55 +170,53 @@ export default function Dashboard() {
 
         <button
           disabled={limitReached}
-          onClick={() => {
-            if (limitReached) {
-              document.getElementById("premiumModal").showModal();
-            } else {
-              document.getElementById("pdfInput").click();
-            }
-          }}
-          className={`flex items-center gap-2 px-5 py-3 rounded-xl border backdrop-blur-lg transition
-          ${
+          onClick={() =>
             limitReached
-              ? "bg-red-500/20 border-red-500/30 text-red-300 cursor-not-allowed opacity-60"
-              : "bg-white/10 hover:bg-white/20 border-white/10"
-          }`}
+              ? premiumModalRef.current.showModal()
+              : document.getElementById("pdfInput").click()
+          }
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl border backdrop-blur-lg transition
+            ${
+              limitReached
+                ? "bg-red-500/20 border-red-500/30 text-red-300 cursor-not-allowed opacity-60"
+                : "bg-white/10 hover:bg-white/20 border-white/10"
+            }`}
         >
           <IoCloudUploadOutline className="text-xl" />
           Subir PDF
         </button>
       </div>
 
-      {/* LISTA PDFs */}
+      {/* LISTA DE PDFs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fadeUp">
         {pdfs.map((pdf) => (
-          <div
-            key={pdf.id}
-            onClick={() => navigate(`/app/presenter/${pdf.id}`)}
-            className="cursor-pointer group"
-          >
-            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden 
-                            shadow-lg backdrop-blur-xl transition group-hover:scale-[1.02]
-                            group-hover:shadow-indigo-500/30">
+          <div key={pdf.id} className="relative">
+            
+            {/* BOTÓN ELIMINAR SIEMPRE VISIBLE */}
+            <button
+              onClick={() => confirmDelete(pdf)}
+              className="absolute top-3 right-3 p-2 bg-red-600/80 hover:bg-red-700 
+                         text-white rounded-full z-20 shadow-lg transition"
+            >
+              <FaTrash className="text-sm" />
+            </button>
 
+            {/* CARD */}
+            <div
+              onClick={() => navigate(`/app/presenter/${pdf.id}`)}
+              className="relative bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow-lg
+                         backdrop-blur-xl transition hover:scale-[1.02] hover:shadow-indigo-500/30 cursor-pointer"
+            >
               <div className="w-full h-48 bg-white/10 flex items-center justify-center">
                 {thumbnails[pdf.id] ? (
-                  <img
-                    src={thumbnails[pdf.id]}
-                    alt="thumb"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={thumbnails[pdf.id]} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-gray-400 text-sm">
-                    Cargando miniatura...
-                  </span>
+                  <span className="text-gray-400 text-sm">Cargando miniatura...</span>
                 )}
               </div>
 
               <div className="p-4">
-                <strong className="text-lg">
-                  {pdf.name.replace(/\.pdf$/i, "")}
-                </strong>
+                <strong className="text-lg">{pdf.name.replace(/\.pdf$/i, "")}</strong>
                 <p className="text-gray-400 text-sm mt-1">
                   {new Date(pdf.created_at).toLocaleDateString("es-MX")}
                 </p>
@@ -181,24 +226,15 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* ⭐ MODAL PREMIUM CENTRADO Y ELEGANTE ⭐ */}
+      {/* MODAL PREMIUM */}
       <dialog
-        id="premiumModal"
-        className="
-          rounded-2xl p-8 w-[90%] max-w-md 
-          bg-[#0F172A]/80 backdrop-blur-2xl 
-          border border-white/10 text-white 
-          mx-auto
-        "
+        ref={premiumModalRef}
+        className="rounded-2xl p-8 w-[90%] max-w-md 
+                 bg-[#0F172A]/80 backdrop-blur-2xl border border-white/10 text-white mx-auto"
       >
-        <h2 className="text-2xl font-bold mb-3 text-center">
-          Límite alcanzado 🚫
-        </h2>
-
+        <h2 className="text-2xl font-bold mb-3 text-center">Límite alcanzado 🚫</h2>
         <p className="text-gray-300 text-center mb-6">
           Ya usaste tus <b>{MAX_FREE_FILES}</b> presentaciones gratuitas.
-          <br />
-          Suscríbete para subir archivos ilimitados.
         </p>
 
         <button
@@ -210,9 +246,38 @@ export default function Dashboard() {
 
         <button
           className="w-full text-gray-400 hover:text-gray-200 mt-4"
-          onClick={() => document.getElementById("premiumModal").close()}
+          onClick={() => premiumModalRef.current.close()}
         >
           Cerrar
+        </button>
+      </dialog>
+
+      {/* MODAL ELIMINAR */}
+      <dialog
+        ref={deleteModalRef}
+        className="rounded-2xl p-8 w-[90%] max-w-sm 
+                 bg-[#1a1f2e]/90 backdrop-blur-2xl border border-white/10 text-white mx-auto"
+      >
+        <h2 className="text-xl font-bold text-center mb-4">
+          ¿Eliminar presentación?
+        </h2>
+
+        <p className="text-gray-300 text-center mb-6">
+          Esta acción no se puede deshacer.
+        </p>
+
+        <button
+          className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-xl font-semibold"
+          onClick={deletePdf}
+        >
+          Eliminar
+        </button>
+
+        <button
+          className="w-full py-2 text-gray-400 hover:text-gray-200 mt-3"
+          onClick={() => deleteModalRef.current.close()}
+        >
+          Cancelar
         </button>
       </dialog>
     </div>

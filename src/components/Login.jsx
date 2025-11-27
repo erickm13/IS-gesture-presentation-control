@@ -34,7 +34,16 @@ export default function Login() {
       await signInWithPopup(auth, provider);
       navigate("/app/dashboard");
     } catch (error) {
-      setToast({ message: "No se pudo iniciar sesión con Google.", type: "error" });
+      console.error("Error google:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        setToast({ message: "Este correo ya está registrado.", type: "error" });
+      } else if (error.code === "auth/account-exists-with-different-credential") {
+        setToast({ message: "Este correo ya está registrado con otra aplicación de tercero.", type: "error" });
+      }
+      else {
+        setToast({ message: "No se iniciar sesión en estos momentos", type: "error" });
+      }
     }
   };
 
@@ -44,7 +53,16 @@ export default function Login() {
       await signInWithPopup(auth, provider);
       navigate("/app/dashboard");
     } catch (error) {
-      setToast({ message: "No se pudo iniciar sesión con GitHub.", type: "error" });
+      console.error("Error GitHub:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        setToast({ message: "Este correo ya está registrado.", type: "error" });
+      } else if (error.code === "auth/account-exists-with-different-credential") {
+        setToast({ message: "Este correo ya está registrado con otra aplicación de tercero.", type: "error" });
+      }
+      else {
+        setToast({ message: "No se iniciar sesión en estos momentos", type: "error" });
+      }
     }
   };
 

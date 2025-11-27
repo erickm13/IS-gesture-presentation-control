@@ -4,7 +4,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
-    GithubAuthProvider,
+  GithubAuthProvider,
 } from "firebase/auth";
 import { auth, db } from "../firebase/config";
 import { doc, setDoc } from "firebase/firestore";
@@ -35,8 +35,17 @@ export default function Register() {
 
       setToast({ message: "Usuario creado con éxito", type: "success" });
       setTimeout(() => navigate("/login"), 1200);
-    } catch (err) {
-      setToast({ message: err.message, type: "error" });
+    } catch (error) {
+      console.error("default register:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        setToast({ message: "Este correo ya está registrado.", type: "error" });
+      } else if (error.code === "auth/account-exists-with-different-credential") {
+        setToast({ message: "Este correo ya está registrado con otra aplicación de tercero.", type: "error" });
+      }
+      else {
+        setToast({ message: "No se puede crear el usuario en estos momentos", type: "error" });
+      }
     }
   };
 
@@ -65,8 +74,17 @@ export default function Register() {
 
       setToast({ message: "Registrado con Google", type: "success" });
       setTimeout(() => navigate("/app/dashboard"), 1200);
-    } catch (err) {
-      setToast({ message: "Error al registrar con Google", type: "error" });
+    } catch (error) {
+      console.error("Error google:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        setToast({ message: "Este correo ya está registrado.", type: "error" });
+      } else if (error.code === "auth/account-exists-with-different-credential") {
+        setToast({ message: "Este correo ya está registrado con otra aplicación de tercero.", type: "error" });
+      }
+      else {
+        setToast({ message: "No se puede crear el usuario en estos momentos", type: "error" });
+      }
     }
   };
 
@@ -109,7 +127,15 @@ export default function Register() {
 
     } catch (error) {
       console.error("Error GitHub:", error);
-      setToast({ message: err.message, type: "error" });
+
+      if (error.code === "auth/email-already-in-use") {
+        setToast({ message: "Este correo ya está registrado.", type: "error" });
+      } else if (error.code === "auth/account-exists-with-different-credential") {
+        setToast({ message: "Este correo ya está registrado con otra aplicación de tercero.", type: "error" });
+      }
+      else {
+        setToast({ message: "No se puede crear el usuario en estos momentos", type: "error" });
+      }
     }
   };
 
@@ -128,7 +154,7 @@ export default function Register() {
       )}
 
       {/* CARD */}
-<div className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl
+      <div className="backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl
                       rounded-3xl p-10 w-full max-w-2xl animate-fadeUp">
 
 
@@ -215,7 +241,7 @@ export default function Register() {
         </div>
 
         {/* GOOGLE */}
-         <div className="space-y-3">
+        <div className="space-y-3">
           <button
             onClick={googleRegister}
             className="w-full py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10
@@ -225,14 +251,14 @@ export default function Register() {
           </button>
 
           <button
-              className="w-full py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 
+            className="w-full py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 
                         transition flex items-center justify-center gap-3 text-white"
-              onClick={githubLogin}
-            >
-              <FaGithub className="text-lg" />
-              GitHub
-            </button>
-          </div>
+            onClick={githubLogin}
+          >
+            <FaGithub className="text-lg" />
+            GitHub
+          </button>
+        </div>
 
         {/* LINK */}
         <p className="text-center text-gray-400 text-sm mt-6">

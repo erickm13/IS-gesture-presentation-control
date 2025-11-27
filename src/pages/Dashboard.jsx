@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -16,15 +16,17 @@ export default function Dashboard() {
   const [pdfs, setPdfs] = useState([]);
   const [thumbnails, setThumbnails] = useState({});
   const [limitReached, setLimitReached] = useState(false);
+
+  // Control de modales
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [pdfToDelete, setPdfToDelete] = useState(null);
 
   const navigate = useNavigate();
-  const premiumModalRef = useRef(null);
-  const deleteModalRef = useRef(null);
 
-  /** =========================================
-   *     GENERAR MINIATURA
-   ========================================== */
+  /* ================================
+        GENERAR MINIATURA
+  ================================ */
   const generateThumbnail = async (base64, id) => {
     try {
       const cleanBase64 = base64.includes("base64,")
@@ -54,9 +56,9 @@ export default function Dashboard() {
     }
   };
 
-  /** =========================================
-   *     CARGAR PDFs
-   ========================================== */
+  /* ================================
+        CARGAR PDFs
+  ================================ */
   useEffect(() => {
     const loadPDFs = async () => {
       const { data, error } = await supabase
@@ -77,16 +79,17 @@ export default function Dashboard() {
     loadPDFs();
   }, []);
 
-  /** =========================================
-   *     SUBIR PDF
-   ========================================== */
+  /* ================================
+        SUBIR PDF
+  ================================ */
   const handlePdfUpload = async (e) => {
-    if (limitReached) return premiumModalRef.current.showModal();
+    if (limitReached) return setShowPremiumModal(true);
 
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
+
     reader.onload = async () => {
       const base64PDF = reader.result.split(",")[1];
 
@@ -102,17 +105,17 @@ export default function Dashboard() {
     reader.readAsDataURL(file);
   };
 
-  /** =========================================
-   *     CONFIRMAR ELIMINACIÓN
-   ========================================== */
+  /* ================================
+        CONFIRMAR ELIMINACIÓN
+  ================================ */
   const confirmDelete = (pdf) => {
     setPdfToDelete(pdf);
-    deleteModalRef.current.showModal();
+    setShowDeleteModal(true);
   };
 
-  /** =========================================
-   *     ELIMINAR PDF DEFINITIVAMENTE
-   ========================================== */
+  /* ================================
+        ELIMINAR PDF
+  ================================ */
   const deletePdf = async () => {
     if (!pdfToDelete) return;
 
@@ -127,22 +130,20 @@ export default function Dashboard() {
       return;
     }
 
-    // Quitar del estado local
     setPdfs((prev) => prev.filter((p) => p.id !== pdfToDelete.id));
-
     setThumbnails((prev) => {
       const updated = { ...prev };
       delete updated[pdfToDelete.id];
       return updated;
     });
 
+    setShowDeleteModal(false);
     setPdfToDelete(null);
-    deleteModalRef.current.close();
   };
 
-  /** =========================================
-   *     RENDER
-   ========================================== */
+  /* ================================
+        RENDER
+  ================================ */
   return (
     <div className="min-h-screen bg-[#0B1120] text-white p-6
                     bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.20),transparent_70%)]">
@@ -153,12 +154,12 @@ export default function Dashboard() {
 
         {limitReached && (
           <span className="text-red-400 text-sm">
-            Límite gratuito de {MAX_FREE_FILES} presentaciones alcanzado
+            Límite gratuito alcanzado ({MAX_FREE_FILES})
           </span>
         )}
       </div>
 
-      {/* BOTON SUBIR */}
+      {/* SUBIR PDF */}
       <div className="flex gap-4 items-center mb-8 animate-fadeUp">
         <input
           type="file"
@@ -169,17 +170,15 @@ export default function Dashboard() {
         />
 
         <button
-          disabled={limitReached}
           onClick={() =>
             limitReached
-              ? premiumModalRef.current.showModal()
+              ? setShowPremiumModal(true)
               : document.getElementById("pdfInput").click()
           }
           className={`flex items-center gap-2 px-5 py-3 rounded-xl border backdrop-blur-lg transition
-            ${
-              limitReached
-                ? "bg-red-500/20 border-red-500/30 text-red-300 cursor-not-allowed opacity-60"
-                : "bg-white/10 hover:bg-white/20 border-white/10"
+            ${limitReached
+              ? "bg-red-500/20 border-red-500/30 text-red-300 opacity-60 cursor-not-allowed"
+              : "bg-white/10 hover:bg-white/20 border-white/10"
             }`}
         >
           <IoCloudUploadOutline className="text-xl" />
@@ -187,12 +186,12 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* LISTA DE PDFs */}
+      {/* LISTA PDFs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fadeUp">
         {pdfs.map((pdf) => (
           <div key={pdf.id} className="relative">
             
-            {/* BOTÓN ELIMINAR SIEMPRE VISIBLE */}
+            {/* BOTÓN ELIMINAR */}
             <button
               onClick={() => confirmDelete(pdf)}
               className="absolute top-3 right-3 p-2 bg-red-600/80 hover:bg-red-700 
@@ -226,60 +225,80 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* MODAL PREMIUM */}
-      <dialog
-        ref={premiumModalRef}
-        className="rounded-2xl p-8 w-[90%] max-w-md 
-                 bg-[#0F172A]/80 backdrop-blur-2xl border border-white/10 text-white mx-auto"
-      >
-        <h2 className="text-2xl font-bold mb-3 text-center">Límite alcanzado 🚫</h2>
-        <p className="text-gray-300 text-center mb-6">
-          Ya usaste tus <b>{MAX_FREE_FILES}</b> presentaciones gratuitas.
-        </p>
-
-        <button
-          className="w-full bg-indigo-500 hover:bg-indigo-600 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-500/30"
-          onClick={() => navigate("/pricing")}
+      {/* =============================
+          MODAL PREMIUM
+      ============================= */}
+      {showPremiumModal && (
+        <div
+          onClick={() => setShowPremiumModal(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn"
         >
-          Ver planes Premium
-        </button>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#0F172A]/90 border border-white/10 rounded-2xl p-8 w-[90%] max-w-md text-center shadow-xl"
+          >
+            <h2 className="text-2xl font-bold mb-3">Límite alcanzado 🚫</h2>
+            <p className="text-gray-300 mb-6">
+              Ya usaste tus <b>{MAX_FREE_FILES}</b> presentaciones gratuitas.
+            </p>
 
-        <button
-          className="w-full text-gray-400 hover:text-gray-200 mt-4"
-          onClick={() => premiumModalRef.current.close()}
+ <button
+  className="w-full bg-indigo-500 hover:bg-indigo-600 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-500/30"
+onClick={() => {
+  navigate("/?scroll=pricing");
+  setShowPremiumModal(false);
+}}
+
+>
+  Ver planes Premium
+</button>
+
+
+            <button
+              className="w-full text-gray-400 hover:text-gray-200 mt-4"
+              onClick={() => setShowPremiumModal(false)}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =============================
+          MODAL ELIMINAR
+      ============================= */}
+      {showDeleteModal && (
+        <div
+          onClick={() => setShowDeleteModal(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn"
         >
-          Cerrar
-        </button>
-      </dialog>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#1a1f2e]/90 border border-white/10 rounded-2xl p-8 w-[90%] max-w-sm text-center shadow-xl"
+          >
+            <h2 className="text-xl font-bold mb-4">¿Eliminar presentación?</h2>
 
-      {/* MODAL ELIMINAR */}
-      <dialog
-        ref={deleteModalRef}
-        className="rounded-2xl p-8 w-[90%] max-w-sm 
-                 bg-[#1a1f2e]/90 backdrop-blur-2xl border border-white/10 text-white mx-auto"
-      >
-        <h2 className="text-xl font-bold text-center mb-4">
-          ¿Eliminar presentación?
-        </h2>
+            <p className="text-gray-300 mb-6">
+              Esta acción no se puede deshacer.
+            </p>
 
-        <p className="text-gray-300 text-center mb-6">
-          Esta acción no se puede deshacer.
-        </p>
+            <button
+              className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-xl font-semibold"
+              onClick={deletePdf}
+            >
+              Eliminar
+            </button>
 
-        <button
-          className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-xl font-semibold"
-          onClick={deletePdf}
-        >
-          Eliminar
-        </button>
+            <button
+              className="w-full py-2 text-gray-400 hover:text-gray-200 mt-3"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
-        <button
-          className="w-full py-2 text-gray-400 hover:text-gray-200 mt-3"
-          onClick={() => deleteModalRef.current.close()}
-        >
-          Cancelar
-        </button>
-      </dialog>
     </div>
   );
 }

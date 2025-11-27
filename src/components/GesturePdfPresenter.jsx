@@ -7,14 +7,18 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
+
 import * as pdfjsLib from "pdfjs-dist";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.js?url";
 
 const GesturePdfPresenter = forwardRef(function GesturePdfPresenter(props, ref) {
   const { pdfBase64 } = props;
+
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const renderTaskRef = useRef(null);
+  const fullscreenBtnRef = useRef(null);
+
   const lastSizeRef = useRef({ w: 0, h: 0 });
 
   const [ready, setReady] = useState(false);
@@ -24,202 +28,209 @@ const GesturePdfPresenter = forwardRef(function GesturePdfPresenter(props, ref) 
   const [rendering, setRendering] = useState(false);
   const [status, setStatus] = useState("Sube un PDF para empezar");
 
+  /** ---------------------------
+   *   Configurar PDF.js Worker
+   * --------------------------- */
   useEffect(() => {
     pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
     setReady(true);
   }, []);
 
+  /** ---------------------------
+   *   Cargar PDF desde Base64
+   * --------------------------- */
+  useEffect(() => {
+    if (!pdfBase64) return;
+
+    setStatus("Cargando PDF...");
+
+    try {
+      const clean = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
+      const bytes = Uint8Array.from(atob(clean), (c) => c.charCodeAt(0));
+
+      pdfjsLib.getDocument({ data: bytes }).promise.then((pdf) => {
+        setPdfDoc(pdf);
+        setNumPages(pdf.numPages);
+        setPageNum(1);
+        renderPage(1);
+      });
+    } catch (err) {
+      console.error("Error cargando PDF:", err);
+      setStatus("Error cargando el PDF");
+    }
+  }, [pdfBase64]);
+
+  /** ---------------------------
+   *   Cálculo de escala
+   * --------------------------- */
   const computeScale = async (page) => {
     const c = wrapRef.current;
     if (!c) return 1.5;
+
     const cw = c.clientWidth || 800;
     const ch = c.clientHeight || 600;
+
     const vp1 = page.getViewport({ scale: 1 });
+
     return Math.max(0.5, Math.min(cw / vp1.width, ch / vp1.height));
   };
 
+  /** ---------------------------
+   *   Renderizado de páginas
+   * --------------------------- */
   const renderPage = useCallback(
     async (n) => {
       if (!pdfDoc || !canvasRef.current) return;
+
       if (renderTaskRef.current) {
         try {
           renderTaskRef.current.cancel();
-        } catch {}
-        try {
           await renderTaskRef.current.promise;
         } catch {}
       }
+
       setRendering(true);
       setStatus(`Renderizando página ${n}...`);
+
       try {
         const page = await pdfDoc.getPage(n);
         const scale = await computeScale(page);
+
         const viewport = page.getViewport({ scale });
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
-        canvas.width = Math.max(1, Math.floor(viewport.width));
-        canvas.height = Math.max(1, Math.floor(viewport.height));
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
         const task = page.render({ canvasContext: ctx, viewport });
         renderTaskRef.current = task;
+
         await task.promise;
         renderTaskRef.current = null;
-        if (wrapRef.current) {
-          lastSizeRef.current = {
-            w: wrapRef.current.clientWidth || 0,
-            h: wrapRef.current.clientHeight || 0,
-          };
-        }
+
+        lastSizeRef.current = {
+          w: wrapRef.current?.clientWidth || 0,
+          h: wrapRef.current?.clientHeight || 0,
+        };
+
         setStatus(`Página ${n} / ${numPages}`);
       } catch (err) {
-        if (err?.name !== "RenderingCancelledException") {
-          console.error("Error renderizando página:", err);
-          setStatus("No se pudo renderizar la página (ver consola)");
-        }
+        console.error("Error renderizando:", err);
+        setStatus("No se pudo renderizar la página");
       } finally {
         setRendering(false);
       }
     },
-    [pdfDoc, numPages],
+    [pdfDoc, numPages]
   );
 
-  const onFile = async (file) => {
-    if (!file) return;
-    setStatus("Cargando PDF...");
-    try {
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-      setPdfDoc(pdf);
-      setNumPages(pdf.numPages);
-      setPageNum(1);
-      await renderPage(1);
-    } catch (e) {
-      console.error(e);
-      setStatus("No se pudo abrir el PDF (¿protegido?)");
-    }
-  };
-
-  const loadDemo = async () => {
-    setStatus("Descargando demo...");
-    const res = await fetch(
-      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    );
-    const buf = await res.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-    setPdfDoc(pdf);
-    setNumPages(pdf.numPages);
-    setPageNum(1);
-    await renderPage(1);
-  };
-
-  const prevPage = useCallback(() => {
-    if (!pdfDoc || rendering) return;
-    setPageNum((p) => {
-      const n = Math.max(p - 1, 1);
-      if (n !== p) renderPage(n);
-      return n;
-    });
-  }, [pdfDoc, rendering, renderPage]);
-
-  const nextPage = useCallback(() => {
-    if (!pdfDoc || rendering) return;
-    setPageNum((p) => {
-      const n = Math.min(p + 1, numPages);
-      if (n !== p) renderPage(n);
-      return n;
-    });
-  }, [pdfDoc, rendering, numPages, renderPage]);
-
-  const toggleFullscreen = () => {
-    const el = wrapRef.current;
-    if (!el) return;
-    if (!document.fullscreenElement) el.requestFullscreen?.();
-    else document.exitFullscreen?.();
-  };
-
+  /** ---------------------------
+   *   Resize Observer / Fullscreen
+   * --------------------------- */
   useEffect(() => {
     if (!pdfDoc) return;
+
     let t = null;
+
     const maybeRerender = () => {
       if (!wrapRef.current) return;
+
       const w = wrapRef.current.clientWidth || 0;
       const h = wrapRef.current.clientHeight || 0;
       const { w: lw, h: lh } = lastSizeRef.current;
+
       if (Math.abs(w - lw) < 2 && Math.abs(h - lh) < 2) return;
+
       clearTimeout(t);
       t = setTimeout(() => {
         if (!rendering) renderPage(pageNum);
-      }, 220);
+      }, 200);
     };
+
+    const ro = new ResizeObserver(maybeRerender);
+    ro.observe(wrapRef.current);
+
     window.addEventListener("resize", maybeRerender);
     document.addEventListener("fullscreenchange", maybeRerender);
-    const ro = new ResizeObserver(maybeRerender);
-    if (wrapRef.current) {
-      ro.observe(wrapRef.current);
-      lastSizeRef.current = {
-        w: wrapRef.current.clientWidth || 0,
-        h: wrapRef.current.clientHeight || 0,
-      };
-    }
+
     return () => {
       clearTimeout(t);
+      ro.disconnect();
       window.removeEventListener("resize", maybeRerender);
       document.removeEventListener("fullscreenchange", maybeRerender);
-      ro.disconnect();
     };
-  }, [pdfDoc, pageNum, renderPage, rendering]);
+  }, [pdfDoc, pageNum, rendering, renderPage]);
 
-  // ✨ Exponer métodos al padre (para HandController)
+  /** ---------------------------
+   *  Métodos expuestos al padre
+   * --------------------------- */
   useImperativeHandle(
     ref,
     () => ({
-      nextPage,
-      prevPage,
-      toggleFullscreen,
+      nextPage: () => {
+        if (!pdfDoc) return;
+        const n = Math.min(pageNum + 1, numPages);
+        setPageNum(n);
+        renderPage(n);
+      },
+      prevPage: () => {
+        if (!pdfDoc) return;
+        const n = Math.max(pageNum - 1, 1);
+        setPageNum(n);
+        renderPage(n);
+      },
+
+      /** FIX FULLSCREEN: usar botón oculto */
+      toggleFullscreen: () => {
+        fullscreenBtnRef.current?.click();
+      },
     }),
-    [nextPage, prevPage],
+    [pageNum, numPages, pdfDoc, renderPage]
   );
 
-  return (
-    <section className="card">
-      <div className="toolbar">
-        <label className="upload">
-          <input
-            type="file"
-            accept="application/pdf"
-            style={{ display: "none" }}
-            disabled={!ready || rendering}
-            onChange={(e) => onFile(e.target.files?.[0])}
-          />
-          {rendering
-            ? "Renderizando..."
-            : ready
-              ? "Subir PDF"
-              : "Inicializando..."}
-        </label>
-        <button onClick={prevPage} disabled={!pdfDoc || rendering}>
-          ⟵ Anterior
-        </button>
-        <button onClick={nextPage} disabled={!pdfDoc || rendering}>
-          Siguiente ⟶
-        </button>
-        <button onClick={toggleFullscreen} disabled={!pdfDoc}>
-          Pantalla completa
-        </button>
-        <button onClick={loadDemo} disabled={!ready || rendering}>
-          Cargar demo
-        </button>
-      </div>
+  /** ---------------------------
+   *  Render UI
+   * --------------------------- */
+return (
+  <section className="w-full h-full">
+    {/* Botón oculto fullscreen */}
+    <button
+      ref={fullscreenBtnRef}
+      style={{ display: "none" }}
+      onClick={() => {
+        const el = wrapRef.current;
+        if (!el) return;
+        if (!document.fullscreenElement) el.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }}
+    />
 
-      <div ref={wrapRef} className="canvas-wrap" style={{ marginTop: 12 }}>
-        <canvas ref={canvasRef} />
-      </div>
+    {/* Contenedor responsive */}
+    <div
+      ref={wrapRef}
+      className="
+        w-full h-full 
+        flex items-center justify-center 
+        overflow-hidden             /* ⬅ evita desbordamientos */
+        bg-black/20 rounded-xl
+      "
+    >
+      <canvas
+        ref={canvasRef}
+        className="
+          max-w-full max-h-full     /* ⬅ canvas JAMÁS más grande que el contenedor */
+          object-contain            /* ⬅ mantiene proporción */
+          block mx-auto
+        "
+      />
+    </div>
 
-      <p className="status" style={{ marginTop: 8 }}>
-        {status}
-      </p>
-    </section>
-  );
+    <p className="text-center text-gray-400 mt-2">{status}</p>
+  </section>
+);
+
 });
 
 export default GesturePdfPresenter;
+

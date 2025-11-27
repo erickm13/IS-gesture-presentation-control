@@ -251,45 +251,55 @@ export default function HandController({
     };
   }, [onSwipeLeft, onSwipeRight, onToggleFullscreen]);
 
-  return (
-    <section className="card" style={{ position: "relative" }}>
-      <div className="toolbar" style={{ justifyContent: "space-between" }}>
-        <h2 style={{ margin: 0 }}>Cámara</h2>
-        <span className="status">
-          {ready ? "Gestos activos" : "Inicializando..."}
-        </span>
-      </div>
+return (
+  <section className="w-full max-w-3xl mx-auto backdrop-blur-xl bg-white/5 
+                      border border-white/10 rounded-3xl shadow-2xl p-6
+                      animate-fadeUp">
 
-      <div style={{ position: "relative" }}>
-        <video ref={videoRef} className="video" autoPlay playsInline muted />
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          }}
-        />
-      </div>
+    {/* Título + Estado */}
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-xl font-bold text-white tracking-wide">Cámara</h2>
 
-      <div className="status" style={{ marginTop: 8 }}>
-        <div>
-          <b>Debug:</b> {debug}
-        </div>
-        <ul>
-          <li>
-            👉 Desliza la mano hacia la <b>derecha</b>: siguiente
-          </li>
-          <li>
-            👈 Desliza la mano hacia la <b>izquierda</b>: anterior
-          </li>
-          <li>
-            ☝️ 1 dedo: siguiente | ✌️ 2 dedos: anterior | ✋ 5 dedos: fullscreen
-          </li>
-        </ul>
-      </div>
-    </section>
-  );
+      <span className={`
+        px-3 py-1 text-sm rounded-xl border 
+        ${ready 
+          ? "bg-green-500/20 border-green-400/20 text-green-300" 
+          : "bg-yellow-500/20 border-yellow-400/20 text-yellow-300"}
+      `}>
+        {ready ? "Gestos activos" : "Inicializando..."}
+      </span>
+    </div>
+
+    {/* Video + Canvas */}
+    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-lg">
+      <video
+        ref={videoRef}
+        className="w-full h-full object-cover"
+        autoPlay
+        playsInline
+        muted
+      />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      />
+    </div>
+
+    {/* Debug */}
+    <div className="mt-4 p-4 bg-black/30 border border-white/10 rounded-xl text-gray-300 text-sm">
+      <p className="mb-2">
+        <b className="text-white">Debug:</b> {debug}
+      </p>
+
+      <ul className="space-y-1 text-gray-400">
+        <li>👉 Desliza la mano hacia la <b className="text-white">derecha</b>: siguiente</li>
+        <li>👈 Desliza la mano hacia la <b className="text-white">izquierda</b>: anterior</li>
+        <li>
+          ☝️ 1 dedo → siguiente | ✌️ 2 dedos → anterior | ✋ 5 dedos → fullscreen
+        </li>
+      </ul>
+    </div>
+  </section>
+);
+
 }

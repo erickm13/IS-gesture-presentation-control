@@ -1,65 +1,118 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
+@plugin "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
+@import "aos/dist/aos.css";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Animación sutil flotante */
+@keyframes float-slow {
+  0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+  25% { transform: translateY(-10px) translateX(5px) rotate(3deg); }
+  50% { transform: translateY(0px) translateX(10px) rotate(0deg); }
+  75% { transform: translateY(10px) translateX(-5px) rotate(-3deg); }
+  100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  height: 100vh;
+/* Animación sutil flotante invertida */
+@keyframes float-reverse {
+  0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+  25% { transform: translateY(10px) translateX(-5px) rotate(-3deg); }
+  50% { transform: translateY(0px) translateX(-10px) rotate(0deg); }
+  75% { transform: translateY(-10px) translateX(5px) rotate(3deg); }
+  100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Clases utilitarias */
+.floating {
+  animation: float-slow 6s ease-in-out infinite;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+.floating-reverse {
+  animation: float-reverse 7s ease-in-out infinite;
+}
+
+/* Fondo premium azul oscuro sin líneas */
+.bg-hero-smooth {
+  background: radial-gradient(circle at 50% 20%, rgba(30, 64, 175, 0.12), transparent 60%),
+              linear-gradient(180deg, #0B1120 0%, #0C1425 50%, #0B1120 100%);
+  background-blend-mode: overlay;
+}
+
+/* Agregar textura noise ligera para eliminar banding */
+.bg-hero-smooth::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+  opacity: 0.06; /* 0.04–0.08 recomendado */
+  pointer-events: none;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeUp {
+  animation: fadeUp 0.5s ease-out forwards;
+}
+
+
+/* SWITCH iOS STYLE */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  inset: 0;
+  background-color: #555;
+  transition: 0.3s;
+  border-radius: 34px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
 }
+
+input:checked + .slider {
+  background-color: #4f46e5; /* indigo-600 */
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+

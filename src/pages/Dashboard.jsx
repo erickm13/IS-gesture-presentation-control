@@ -4,8 +4,8 @@ import { LuPresentation } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { auth } from "../firebase/config";
-
 import * as pdfjsLib from "pdfjs-dist";
+
 
 export default function Dashboard() {
   const [pdfs, setPdfs] = useState([]);
@@ -13,19 +13,14 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
 
+  // ==== GENERAR MINIATURA ====
   const generateThumbnail = async (base64, id) => {
     try {
-      console.log("Generando miniatura para id:", id);
-
       const binary = atob(base64);
       const len = binary.length;
       const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
 
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-
-      // Cargar PDF sin worker
       const loadingTask = pdfjsLib.getDocument({
         data: bytes,
         useWorkerFetch: false,
@@ -34,7 +29,6 @@ export default function Dashboard() {
       });
 
       const pdf = await loadingTask.promise;
-
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 0.3 });
 
@@ -54,16 +48,14 @@ export default function Dashboard() {
     }
   };
 
+
+  // ==== CARGAR PDFs ====
   useEffect(() => {
     const loadPDFs = async () => {
       const { data, error } = await supabase
         .from("presentations")
         .select("*")
-        .eq("user_id", auth.currentUser.uid)
-
-      console.log("DATA Supabase:", data);
-      console.log("ERROR Supabase:", error);
-      console.log("UID Firebase:", auth.currentUser?.uid);
+        .eq("user_id", auth.currentUser.uid);
 
       if (error) {
         console.error("Error cargando PDFs:", error);
@@ -72,11 +64,8 @@ export default function Dashboard() {
 
       setPdfs(data);
 
-      // generar miniaturas
       data.forEach((pdf) => {
-        if (pdf.pdf_content) {
-          generateThumbnail(pdf.pdf_content, pdf.id);
-        }
+        if (pdf.pdf_content) generateThumbnail(pdf.pdf_content, pdf.id);
       });
     };
 
@@ -84,12 +73,12 @@ export default function Dashboard() {
   }, []);
 
 
+  // ==== SUBIR PDF ====
   const handlePdfUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-
     reader.onload = async () => {
       const base64PDF = reader.result.split(",")[1];
 
@@ -100,10 +89,8 @@ export default function Dashboard() {
       });
 
       if (error) {
-        console.error("Error guardando PDF:", error);
         alert("Error al subir PDF");
       } else {
-        alert("PDF subido correctamente");
         window.location.reload();
       }
     };
@@ -111,52 +98,85 @@ export default function Dashboard() {
     reader.readAsDataURL(file);
   };
 
+
   return (
-    <div>
-      <h2>Mis Presentaciones</h2>
+    <div className="min-h-screen bg-[#0B1120] text-white p-6
+                    bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.20),transparent_70%)]">
 
-      <input
-        type="file"
-        id="pdfInput"
-        accept="application/pdf"
-        style={{ display: "none" }}
-        onChange={handlePdfUpload}
-      />
+      {/* === HEADER === */}
+      <div className="flex justify-between items-center mb-10 animate-fadeUp">
+        <h1 className="text-4xl font-bold">Mis Presentaciones</h1>
 
-      <button onClick={() => document.getElementById("pdfInput").click()}>
-        <IoCloudUploadOutline /> Cargar PDF
-      </button>
+        <button
+          onClick={() => navigate("/app/presenter")}
+          className="flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 
+                     rounded-xl shadow-lg shadow-indigo-500/30 transition"
+        >
+          <LuPresentation className="text-xl" />
+          Modo Presentación
+        </button>
+      </div>
 
-      <button onClick={() => navigate("/app/presenter")}>
-        <LuPresentation /> Ver presentación de prueba
-      </button>
 
-      {pdfs.length === 0 && <p>No hay PDFs aún</p>}
+      {/* === BOTONES === */}
+      <div className="flex gap-4 items-center mb-8 animate-fadeUp">
+        <input
+          type="file"
+          id="pdfInput"
+          accept="application/pdf"
+          className="hidden"
+          onChange={handlePdfUpload}
+        />
 
-      <div className="pdf-grid">
+        <button
+          onClick={() => document.getElementById("pdfInput").click()}
+          className="flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20
+                     rounded-xl border border-white/10 backdrop-blur-lg transition"
+        >
+          <IoCloudUploadOutline className="text-xl" />
+          Subir PDF
+        </button>
+      </div>
+
+
+      {/* === LISTA DE PDFs === */}
+      {pdfs.length === 0 && (
+        <p className="text-gray-400 text-center mt-20">Aún no tienes presentaciones</p>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fadeUp">
         {pdfs.map((pdf) => (
           <div
             key={pdf.id}
-            className="pdf-item"
             onClick={() => navigate(`/app/presenter/${pdf.id}`)}
+            className="cursor-pointer group"
           >
-            <img
-              src={thumbnails[pdf.id]}
-              alt="thumbnail"
-              className="pdf-thumb"
-              style={{
-                width: "160px",
-                height: "auto",
-                background: "#eee",
-                borderRadius: "8px",
-              }}
-            />
+            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden 
+                            shadow-lg backdrop-blur-xl transition group-hover:scale-[1.02]
+                            group-hover:shadow-indigo-500/30">
+              
+              {/* Miniatura */}
+              <div className="w-full h-48 bg-white/10 flex items-center justify-center">
+                {thumbnails[pdf.id] ? (
+                  <img
+                    src={thumbnails[pdf.id]}
+                    alt="thumb"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-gray-400 text-sm">Cargando miniatura...</span>
+                )}
+              </div>
 
-            <strong>{pdf.name}</strong>
-            <p>{pdf.created_at}</p>
+              <div className="p-4">
+                <strong className="text-lg">{pdf.name}</strong>
+                <p className="text-gray-400 text-sm mt-1">{pdf.created_at}</p>
+              </div>
+            </div>
           </div>
         ))}
       </div>
     </div>
   );
 }
+

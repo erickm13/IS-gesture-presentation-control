@@ -186,17 +186,39 @@ const scrollTo = (ref, offset = -200) => {
         "
         data-aos="fade-up"
       >
-        {/* glow radial */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.2),transparent_60%)] pointer-events-none" />
+{/* Glow radial suave detrás del texto */}
+<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.35),transparent_70%)] opacity-40 pointer-events-none" />
 
-        <h1 className="text-4xl md:text-6xl font-extrabold mb-6 opacity-90 relative z-10 max-w-3xl">
-          Controla tus presentaciones con solo mover la mano
-        </h1>
+<div className="relative z-10 flex flex-col items-center text-center">
 
-        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-8 relative z-10">
-          GesturePresenter detecta tus gestos en tiempo real y avanza las diapositivas
-          sin que tengas que tocar el teclado, el mouse o un control remoto.
-        </p>
+  {/* Subtítulo */}
+  <p className="text-gray-300 text-sm md:text-base mb-4">
+    Control por gestos, hecho para presentadores modernos
+  </p>
+
+  {/* Título principal */}
+  <h1 className="
+      text-4xl md:text-6xl font-extrabold 
+      tracking-tight leading-tight 
+      mb-6
+    "
+  >
+    Presenta con tus manos,<br className="hidden md:block" />
+    sin tocar nada.
+  </h1>
+
+  {/* Descripción */}
+  <p className="text-gray-400 text-lg md:text-xl max-w-2xl mb-8">
+    GesturePresenter convierte tus gestos en acciones reales sobre tu presentación en PDF.
+    Natural, rápido y sin interrupciones.
+  </p>
+
+
+
+
+
+</div>
+
 
 {/* Logos flotando */}
 <div className="absolute inset-0 pointer-events-none">
@@ -215,8 +237,8 @@ const scrollTo = (ref, offset = -200) => {
   />
 
   <img
-    src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vite/vite-original.svg"
-    className="w-10 md:w-25 absolute bottom-[22%] left-[20%] floating opacity-70
+    src="https://www.galileo.edu/page/wp-content/uploads/2023/04/1-2.png"
+    className="w-10 md:w-40 absolute bottom-[22%] left-[20%] floating opacity-70
                transition-transform duration-300 hover:scale-150 pointer-events-auto"
     alt="Vite"
   />
@@ -238,7 +260,7 @@ const scrollTo = (ref, offset = -200) => {
 
 
         {/* Botones principales */}
-        <div className="flex flex-col sm:flex-row gap-4 mt-4 relative z-10">
+        <div className="flex flex-col sm:flex-row gap-4 mt-1 relative z-10">
           <button
             onClick={() => navigate("/register")}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-medium 
@@ -246,14 +268,22 @@ const scrollTo = (ref, offset = -200) => {
           >
             Comenzar ahora
           </button>
-          <button
-            onClick={() => scrollTo(demoRef)}
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl font-medium 
-                       text-gray-200 border border-gray-700"
-          >
-            Ver demo
-          </button>
+    {/* Botón secundario */}
+    <button
+      onClick={() => scrollTo(demoRef)}
+      className="
+        px-6 py-3 rounded-xl font-medium shadow-sm shadow-blue-600
+        border border-white/20 text-white bg-white/10 hover:bg-white/2 
+        transition transform  hover:scale-105 
+      "
+    >
+      Ver demo
+    </button>
         </div>
+          {/* Nota */}
+  <p className="text-gray-500 text-sm mt-6">
+    Versión beta · No se requiere tarjeta
+  </p>
       </section>
 
       {/* CÓMO FUNCIONA */}
@@ -298,25 +328,61 @@ const scrollTo = (ref, offset = -200) => {
         </div>
       </section>
 
-      {/* DEMO */}
-      <section
-        ref={demoRef}
-        className="py-20 bg-[#020617] px-6"
-        data-aos="fade-up"
-      >
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Mira cómo funciona</h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            Próximamente podrás ver una demo en vivo controlando una presentación real
-            con gestos de la mano. Por ahora, te mostramos un espacio listo para tu
-            video o GIF.
-          </p>
+{/* DEMO */}
+<section
+  ref={demoRef}
+  className="py-20 bg-[#020617] px-6 relative"
+  data-aos="fade-up"
+>
+  <div className="max-w-5xl mx-auto text-center relative">
 
-          <div className="bg-[#0f172a] border border-gray-800 rounded-3xl h-64 md:h-80 flex items-center justify-center text-gray-400 text-sm">
-            Área de demo — inserta aquí tu video o GIF cuando esté listo.
-          </div>
-        </div>
-      </section>
+    <h2 className="text-3xl md:text-4xl font-bold mb-6">Mira cómo funciona</h2>
+    <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+      Observa cómo GesturePresenter detecta tus gestos y controla una presentación real.
+    </p>
+
+    {/* WRAPPER RELATIVO */}
+    <div className="relative">
+
+      {/* VIDEO GRANDE (PRESENTACIÓN) */}
+      <div className="bg-[#0f172a] border border-gray-800 rounded-3xl overflow-hidden h-64 md:h-103 shadow-xl">
+        <video
+          src="../../public/demo.mov"
+          className="w-full h-100 object-cover opacity-90"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      </div>
+
+      {/* VIDEO PEQUEÑO (CÁMARA), AHORA FUERA DEL DIV GRANDE */}
+      <div
+        className="
+          absolute -top-30 -right-40
+          w-36 h-24 md:w-64 md:h-68
+          rounded-2xl border border-white/10 
+          bg-black/50 backdrop-blur-xl
+          shadow-[0_8px_30px_rgba(0,0,0,0.4)]
+          overflow-hidden
+          transition-transform duration-300 ease-out
+          hover:scale-105 hover:shadow-[0_12px_40px_rgba(0,0,0,0.55)]
+        "
+      >
+        <video
+          src="../../public/camera.mov"
+          className="w-full h-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      </div>
+
+    </div>
+  </div>
+</section>
+
 
       {/* CASOS DE USO */}
       <section
@@ -360,23 +426,18 @@ const scrollTo = (ref, offset = -200) => {
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-start">
           {/* Integraciones */}
           <div>
-            <h2 className="text-2xl font-bold mb-4">Compatible con tus herramientas</h2>
+            <h2 className="text-2xl font-bold mb-4">Compatible con cualquier presentación en PDF</h2>
             <p className="text-gray-300 text-sm mb-4">
-              GesturePresenter funciona con cualquier software de presentaciones que
-              acepte atajos de teclado:
+              GesturePresenter incluye su propio visor integrado, por lo que no necesitas PowerPoint, Slides ni Keynote.
+Solo exporta tu presentación a PDF y contrólala con gestos.
             </p>
-            <ul className="space-y-2 text-gray-300 text-sm list-disc list-inside">
-              <li>PowerPoint</li>
-              <li>Google Slides</li>
-              <li>Visores de PDF</li>
-              <li>Keynote y herramientas basadas en navegador</li>
-            </ul>
+
           </div>
 
           {/* Ventajas */}
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Pensado para ser práctico</h2>
-            <ul className="space-y-3 text-gray-300 text-sm">
+          <div className= "ml-25">
+            <h2 className="text-2xl font-bold mb-4 ">Pensado para ser práctico</h2>
+            <ul className="space-y-4 text-gray-300 text-sm">
               <li>🚫 No requiere hardware adicional: solo tu cámara.</li>
               <li>⚡ Detección en tiempo real con baja latencia.</li>
               <li>🧠 IA de visión por computadora para reconocer gestos.</li>
@@ -386,45 +447,81 @@ const scrollTo = (ref, offset = -200) => {
         </div>
       </section>
 
-      {/* PRECIOS */}
-      <section
-        ref={pricingRef}
-        className="py-24 bg-[#020617] px-6"
-        data-aos="fade-up"
-      >
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-          Nuestros Precios
-        </h2>
+{/* PRECIOS */}
+<section
+  ref={pricingRef}
+  className="py-24 bg-[#020617] px-6"
+  data-aos="fade-up"
+>
+  <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
+    Nuestros Precios
+  </h2>
 
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
-          <div className="bg-[#0f172a] p-8 rounded-2xl border border-gray-800 text-center">
-            <h3 className="text-2xl font-bold mb-2">Básico</h3>
-            <p className="text-gray-400 mb-4 text-sm">Ideal para comenzar</p>
-            <p className="text-4xl font-extrabold mb-6">$9</p>
-            <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-medium">
-              Elegir plan
-            </button>
-          </div>
+  {/* Mensaje de versión beta */}
+  <p className="text-center text-gray-400 text-sm mb-12">
+    🚀 Actualmente estamos en <b>versión beta</b>.  
+    Los planes Pro y Premium estarán disponibles <b>próximamente</b> mientras continuamos desarrollando funciones avanzadas.
+  </p>
 
-          <div className="bg-[#0f172a] p-8 rounded-2xl border border-blue-600 shadow-xl shadow-blue-700/30 text-center">
-            <h3 className="text-2xl font-bold mb-2">Pro</h3>
-            <p className="text-gray-400 mb-4 text-sm">Para usos frecuentes</p>
-            <p className="text-4xl font-extrabold mb-6">$29</p>
-            <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-medium">
-              Elegir plan
-            </button>
-          </div>
+  <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
 
-          <div className="bg-[#0f172a] p-8 rounded-2xl border border-gray-800 text-center">
-            <h3 className="text-2xl font-bold mb-2">Premium</h3>
-            <p className="text-gray-400 mb-4 text-sm">Para equipos completos</p>
-            <p className="text-4xl font-extrabold mb-6">$49</p>
-            <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-medium">
-              Elegir plan
-            </button>
-          </div>
-        </div>
-      </section>
+    {/* PLAN BÁSICO */}
+    <div className="bg-[#0f172a] p-8 rounded-2xl border border-gray-800 text-center">
+      <h3 className="text-2xl font-bold mb-2">Básico</h3>
+      <p className="text-gray-400 mb-4 text-sm">Ideal para comenzar</p>
+      <p className="text-4xl font-extrabold mb-6">$0</p>
+
+      <ul className="text-gray-300 text-sm space-y-2 mb-6">
+        <li>✔ Hasta <b>5 presentaciones</b></li>
+        <li>✔ Control por gestos con <b>dedos</b></li>
+        <li>✔ Visor PDF integrado</li>
+      </ul>
+
+      <button className="w-full mt-12 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-medium"
+        onClick={() => navigate("/login")}>
+        Prueba Gratis
+      </button>
+    </div>
+
+    {/* PLAN PRO */}
+    <div className="bg-[#0f172a] p-8 rounded-2xl border border-blue-600 shadow-xl shadow-blue-700/30 text-center">
+      <h3 className="text-2xl font-bold mb-2">Pro</h3>
+      <p className="text-gray-400 mb-4 text-sm">Para usuarios frecuentes</p>
+      <p className="text-4xl font-extrabold mb-6">$29</p>
+
+      <ul className="text-gray-300 text-sm space-y-2 mb-6">
+        <li>✔ Hasta <b>20 presentaciones</b></li>
+        <li>✔ Gestos con dedos</li>
+        <li>✔  Gestos de <b>deslizar la mano</b></li>
+        <li>✔ Gestos de <b>zoom</b></li>
+      </ul>
+
+      <button className="w-full mt-5 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-medium">
+        Próximamente
+      </button>
+    </div>
+
+    {/* PLAN PREMIUM */}
+    <div className="bg-[#0f172a] p-8 rounded-2xl border border-gray-800 text-center">
+      <h3 className="text-2xl font-bold mb-2">Premium</h3>
+      <p className="text-gray-400 mb-4 text-sm">Para equipos y presentadores avanzados</p>
+      <p className="text-4xl font-extrabold mb-6">$49</p>
+
+      <ul className="text-gray-300 text-sm space-y-2 mb-6">
+        <li>✔ <b>Presentaciones ilimitadas</b></li>
+        <li>✔ Todos los gestos del plan Pro</li>
+        <li>✔ Detección mejorada por IA</li>
+        <li>✔ Rendimiento optimizado</li>
+      </ul>
+
+      <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-medium">
+        Proximamente
+      </button>
+    </div>
+
+  </div>
+</section>
+
 
       {/* RESEÑAS */}
       <section
@@ -506,12 +603,12 @@ const scrollTo = (ref, offset = -200) => {
       >
         <p className="mb-2">
           © {new Date().getFullYear()} GesturePresenter. Proyecto académico de control
-          de presentaciones por gestos.
+          de presentaciones por gestos. Universidad Galileo
         </p>
         <p>
           Código fuente en{" "}
           <a
-            href="https://github.com/tu-usuario/tu-repo"
+            href="https://github.com/erickm13/IS-gesture-presentation-control.git"
             className="text-blue-400 hover:text-blue-300 underline"
             target="_blank"
             rel="noreferrer"

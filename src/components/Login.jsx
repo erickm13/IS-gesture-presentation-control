@@ -38,16 +38,6 @@ export default function Login() {
     }
   };
 
-  const facebookLogin = async () => {
-    try {
-      const provider = new FacebookAuthProvider();
-      await signInWithPopup(auth, provider);
-      navigate("/app/dashboard");
-    } catch (error) {
-      setToast({ message: "No se pudo iniciar sesión con Facebook.", type: "error" });
-    }
-  };
-
   const githubLogin = async () => {
     try {
       const provider = new GithubAuthProvider();
@@ -147,15 +137,6 @@ export default function Login() {
           >
             <FaGoogle className="text-lg" />
             Google
-          </button>
-
-          <button
-            className="w-full py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 
-                       transition flex items-center justify-center gap-3 text-white"
-            onClick={facebookLogin}
-          >
-            <FaFacebook className="text-lg text-blue-400" />
-            Facebook
           </button>
 
           <button

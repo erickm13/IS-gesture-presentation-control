@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import "../index.css";
+import { useLocation } from "react-router-dom";
 
 export default function WelcomePage() {
   const navigate = useNavigate();
@@ -19,6 +20,21 @@ export default function WelcomePage() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const { search } = useLocation();
+
+useEffect(() => {
+  const params = new URLSearchParams(search);
+  const section = params.get("scroll");
+
+  if (section === "pricing") scrollTo(pricingRef);
+  if (section === "reviews") scrollTo(reviewsRef);
+  if (section === "faq") scrollTo(faqRef);
+  if (section === "demo") scrollTo(demoRef);
+  if (section === "usecases") scrollTo(useCasesRef);
+  if (section === "how") scrollTo(howItWorksRef);
+  if (section === "hero") scrollTo(heroRef);
+}, [search]);
+
   useEffect(() => {
     AOS.init({
       duration: 800,
@@ -27,10 +43,19 @@ export default function WelcomePage() {
     });
   }, []);
 
-  const scrollTo = (ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth" });
-    setMobileOpen(false);
-  };
+const scrollTo = (ref, offset = -200) => {
+  if (!ref.current) return;
+
+  const top = ref.current.getBoundingClientRect().top + window.pageYOffset + offset;
+
+  window.scrollTo({
+    top,
+    behavior: "smooth",
+  });
+
+  setMobileOpen(false);
+};
+
 
   return (
     <div className="bg-[#020617] text-white min-h-screen">

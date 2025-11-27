@@ -30,7 +30,7 @@ export default function App() {
  
           
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="presenter" element={<PrincipalProject />} />
+          <Route path="presenter/:id" element={<PrincipalProject />} />
         </Route>
 
       </Routes>

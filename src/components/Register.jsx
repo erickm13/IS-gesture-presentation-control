@@ -4,10 +4,11 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+    GithubAuthProvider,
 } from "firebase/auth";
 import { auth, db } from "../firebase/config";
 import { doc, setDoc } from "firebase/firestore";
-import { FaGoogle } from "react-icons/fa";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 import Toast from "../components/Toast";
 
 export default function Register() {
@@ -68,6 +69,50 @@ export default function Register() {
       setToast({ message: "Error al registrar con Google", type: "error" });
     }
   };
+
+  const githubLogin = async () => {
+    try {
+      const provider = new GithubAuthProvider();
+
+      provider.addScope("user:email");
+
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      let email = user.email;
+
+      if (!email) {
+        const providerData = result._tokenResponse;
+        const githubEmail = providerData?.email;
+
+        if (githubEmail) email = githubEmail;
+        else email = "no-email@github.user";
+      }
+
+      const displayName = user.displayName || user.reloadUserInfo?.screenName || "GitHub User";
+      const [name, lastname] = displayName.split(" ");
+
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          uid: user.uid,
+          email,
+          name: name || "",
+          lastname: lastname || "",
+          role: "user",
+        },
+        { merge: true }
+      );
+
+      setToast({ message: "Usuario creado con éxito", type: "success" });
+      setTimeout(() => navigate("/login"), 1200);
+
+    } catch (error) {
+      console.error("Error GitHub:", error);
+      setToast({ message: err.message, type: "error" });
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-[#0B1120] flex items-center justify-center px-4
@@ -170,13 +215,24 @@ export default function Register() {
         </div>
 
         {/* GOOGLE */}
-        <button
-          onClick={googleRegister}
-          className="w-full py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10
-                     transition flex items-center justify-center gap-3 text-white md:col-span-2"
-        >
-          <FaGoogle className="text-lg" /> Registrar con Google
-        </button>
+         <div className="space-y-3">
+          <button
+            onClick={googleRegister}
+            className="w-full py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10
+                      transition flex items-center justify-center gap-3 text-white md:col-span-2"
+          >
+            <FaGoogle className="text-lg" /> Registrar con Google
+          </button>
+
+          <button
+              className="w-full py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 
+                        transition flex items-center justify-center gap-3 text-white"
+              onClick={githubLogin}
+            >
+              <FaGithub className="text-lg" />
+              GitHub
+            </button>
+          </div>
 
         {/* LINK */}
         <p className="text-center text-gray-400 text-sm mt-6">

@@ -198,34 +198,44 @@ const scrollTo = (ref, offset = -200) => {
           sin que tengas que tocar el teclado, el mouse o un control remoto.
         </p>
 
-        {/* Logos flotando */}
-        <div className="absolute inset-0 pointer-events-none">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg"
-            className="w-12 md:w-25 absolute top-[20%] left-[12%] floating opacity-70"
-            alt="React"
-          />
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg"
-            className="w-12 md:w-25 absolute top-[12%] right-[16%] floating-reverse opacity-70"
-            alt="TailwindCSS"
-          />
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vite/vite-original.svg"
-            className="w-10 md:w-25 absolute bottom-[22%] left-[20%] floating opacity-70"
-            alt="Vite"
-          />
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
-            className="w-10 md:w-25 absolute bottom-[18%] right-[22%] floating-reverse opacity-70"
-            alt="JavaScript"
-          />
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Google_Mediapipe_logo.svg/512px-Google_Mediapipe_logo.svg.png"
-            className="w-10 md:w-25 absolute top-[25%] left-[45%] floating opacity-70 rounded"
-            alt="MediaPipe"
-          />
-        </div>
+{/* Logos flotando */}
+<div className="absolute inset-0 pointer-events-none">
+  <img
+    src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg"
+    className="w-12 md:w-25 absolute top-[20%] left-[12%] floating opacity-70 
+               transition-transform duration-300 hover:scale-150 pointer-events-auto"
+    alt="React"
+  />
+
+  <img
+    src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Pdf-js_logo.svg/2048px-Pdf-js_logo.svg.png"
+    className="w-12 md:w-25 absolute top-[12%] right-[16%] floating-reverse opacity-70
+               transition-transform duration-300 hover:scale-150 pointer-events-auto"
+    alt="PDFJS"
+  />
+
+  <img
+    src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vite/vite-original.svg"
+    className="w-10 md:w-25 absolute bottom-[22%] left-[20%] floating opacity-70
+               transition-transform duration-300 hover:scale-150 pointer-events-auto"
+    alt="Vite"
+  />
+
+  <img
+    src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
+    className="w-10 md:w-25 absolute bottom-[18%] right-[22%] floating-reverse opacity-70
+               transition-transform duration-300 hover:scale-150 pointer-events-auto"
+    alt="JavaScript"
+  />
+
+  <img
+    src="https://chuoling.github.io/mediapipe/images/logo_horizontal_color.png"
+    className="w-10 md:w-65 absolute top-[15%] left-[45%] floating opacity-70 rounded
+               transition-transform duration-300 hover:scale-150 pointer-events-auto"
+    alt="MediaPipe"
+  />
+</div>
+
 
         {/* Botones principales */}
         <div className="flex flex-col sm:flex-row gap-4 mt-4 relative z-10">

@@ -347,7 +347,7 @@ const scrollTo = (ref, offset = -200) => {
       {/* VIDEO GRANDE (PRESENTACIÓN) */}
       <div className="bg-[#0f172a] border border-gray-800 rounded-3xl overflow-hidden h-64 md:h-103 shadow-xl">
         <video
-          src="../../public/demo.mov"
+          src="/demo.mov"
           className="w-full h-100 object-cover opacity-90"
           autoPlay
           muted
@@ -370,7 +370,7 @@ const scrollTo = (ref, offset = -200) => {
         "
       >
         <video
-          src="../../public/camera.mov"
+          src="/camera.mov"
           className="w-full h-full object-cover"
           autoPlay
           muted

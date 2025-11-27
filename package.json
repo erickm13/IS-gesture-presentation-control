@@ -13,12 +13,16 @@
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/hands": "^0.4.1675469240",
     "@supabase/supabase-js": "^2.84.0",
+    "@tailwindcss/vite": "^4.1.17",
+    "aos": "^2.3.4",
     "firebase": "^12.6.0",
+    "flowbite-react": "^0.12.10",
     "pdfjs-dist": "^3.11.174",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^5.5.0",
-    "react-router-dom": "^7.9.6"
+    "react-router-dom": "^7.9.6",
+    "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

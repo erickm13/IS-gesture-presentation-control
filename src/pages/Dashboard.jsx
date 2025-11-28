@@ -165,6 +165,7 @@ export default function Dashboard() {
           type="file"
           id="pdfInput"
           accept="application/pdf"
+          data-testid="pdf-upload-input"
           className="hidden"
           onChange={handlePdfUpload}
         />

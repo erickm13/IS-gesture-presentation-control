@@ -487,7 +487,7 @@ Solo exporta tu presentación a PDF y contrólala con gestos.
     <div className="bg-[#0f172a] p-8 rounded-2xl border border-blue-600 shadow-xl shadow-blue-700/30 text-center">
       <h3 className="text-2xl font-bold mb-2">Pro</h3>
       <p className="text-gray-400 mb-4 text-sm">Para usuarios frecuentes</p>
-      <p className="text-4xl font-extrabold mb-6">$29</p>
+      <p className="text-4xl font-extrabold mb-6">$4.99</p>
 
       <ul className="text-gray-300 text-sm space-y-2 mb-6">
         <li>✔ Hasta <b>20 presentaciones</b></li>
@@ -505,7 +505,7 @@ Solo exporta tu presentación a PDF y contrólala con gestos.
     <div className="bg-[#0f172a] p-8 rounded-2xl border border-gray-800 text-center">
       <h3 className="text-2xl font-bold mb-2">Premium</h3>
       <p className="text-gray-400 mb-4 text-sm">Para equipos y presentadores avanzados</p>
-      <p className="text-4xl font-extrabold mb-6">$49</p>
+      <p className="text-4xl font-extrabold mb-6">$9.99</p>
 
       <ul className="text-gray-300 text-sm space-y-2 mb-6">
         <li>✔ <b>Presentaciones ilimitadas</b></li>
